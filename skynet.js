@@ -74,6 +74,10 @@ stream.on('message', function (message) {
 
 		  session.message(flow_id, "and the winner is... " + options[Math.floor(Math.random() * options.length)], '', function () { });
 		}
+		else if (message.indexOf('wish') >= 0) {
+			var rand = Math.floor(Math.random() * wish.length);
+		  session.message(flow_id, wish[rand], '', function () { });
+		}
 		else {
 		  var rand = Math.floor(Math.random() * quotes.length);
 		  session.message(flow_id, quotes[rand], '', function () { });
@@ -142,5 +146,9 @@ var quotes = [
   'Не откладывай на завтра то, что можно сделать сегодня.'
 ];
 
-var help = 'Commnands:\n    deploy [feature] [environment] [git branch(for review only)]\n    >  deploy pme qa\n    >  deploy pme review Amazon\n    test [feature] [environment] [git branch(for review only)]\n    >  test pme qa\n    >  test pme prod\n    >  test pme review Amazon\n'
-;
+var help = 'Commnands:\n    deploy [feature] [environment] [git branch(for review only)]\n    >  deploy pme qa\n    >  deploy pme review Amazon\n    test [feature] [environment] [git branch(for review only)]\n    >  test pme qa\n    >  test pme prod\n    >  test pme review Amazon\n';
+
+var wish = [
+	'Your wish is granted!',
+	"You've been bad...no wish for you!"
+];
