@@ -72,11 +72,11 @@ stream.on('message', function (message) {console.log(message)
 
 			session.comment(flow_id, message.id, "and the winner is... " + options[Math.floor(Math.random() * options.length)], '', function () { });
 		}
-		else if (message.indexOf('wish') >= 0) {
+		else if (messageContent.indexOf('wish') >= 0) {
 			var rand = Math.floor(Math.random() * wish.length);
 		  session.message(flow_id, wish[rand], '', function () { });
 		}
-		else if (message.indexOf('cat') >= 0) {
+		else if (messageContent.indexOf('cat') >= 0) {
 			var rand = Math.floor(Math.random() * cat.length);
 		  session.message(flow_id, cat[rand], '', function () { });
 		}
