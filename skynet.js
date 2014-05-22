@@ -66,11 +66,23 @@ stream.on('message', function (message) {
 					console.log(data)
 			});
 		}
+<<<<<<< HEAD
 		else if (message.content.toLowerCase && message.content.toLowerCase().indexOf('help') >= 0) {
 			session.message(flow_id, help, '');
 		}
 		var rand = Math.floor(Math.random()*quotes.length);
 		session.message(flow_id, quotes[rand], '', function () {});
+=======
+		else if (message.content.toLowerCase().indexOf('choose') == 9 && message.content.toLowerCase().indexOf('or') >= 0) {
+		  var options = message.content.replace(/@skynet, choose /i, '').replace(/ or /ig, '||').split('||');
+
+		  session.message(flow_id, "and the winner is... " + options[Math.floor(Math.random() * options.length)], '', function () { });
+		}
+		else {
+		  var rand = Math.floor(Math.random() * quotes.length);
+		  session.message(flow_id, quotes[rand], '', function () { });
+		}
+>>>>>>> FETCH_HEAD
 	}
 	if(message.content.toLowerCase && message.content.toLowerCase().indexOf('@here') >= 0){
 		session.flows(function (flows) {
