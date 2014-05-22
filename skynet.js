@@ -1,16 +1,18 @@
 var Flowdock = require('flowdock');
 var Jenkins = require('jenkins-api');
 
-var flow_id, user_id, jenkins_id, jenkins_pass;
+var flow_id, user_id, jenkins_id, jenkins_pass, jenkins_server = 'build.udini.proquest.com';
 var args = process.argv.slice(2);
 if(args.length >= 2){
 	user_id = args[0];
 	flow_id = args[1];
 	jenkins_id = args[2];
 	jenkins_pass = args[3];
+	if(args.length == 5)
+		jenkins_server = args[3];
 }
 
-var jenkins = Jenkins.init("http://" + jenkins_id + ":" + jenkins_pass + "@build.udini.proquest.com:8080");
+var jenkins = Jenkins.init("http://" + jenkins_id + ":" + jenkins_pass + "@"+ jenkins_server+":8080");
 var testsQueued = [];
 var session = new Flowdock.Session(user_id);
 var stream = session.stream(flow_id);
@@ -115,7 +117,6 @@ setInterval(function(){
 	jenkins.job_info(test.job, function (err, data) {
 		if (err)
 			return console.log(err);
-		console.log(data);
 		if(!data.queueItem && data.lastCompletedBuild.number == data.lastBuild.number){
 
 			jenkins.job_output(test.job, data.lastCompletedBuild.number, function (err, data) {
@@ -132,9 +133,8 @@ setInterval(function(){
 				}
 				var output = ['Humans interact so poorly with machines, fix these:'];
 				for (fail in failed)
-					output += output.push(fail);
-				session.comment(flow_id, message.id, output.join('\n'), '', function () {
-				});
+					output.push(fail);
+				session.comment(flow_id, message.id, output.join('\n'), '', function () {});
 			});
 		}
 		else
