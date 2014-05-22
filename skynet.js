@@ -14,65 +14,63 @@ var jenkins = Jenkins.init("http://" + jenkins_id + ":" + jenkins_pass + "@build
 var testsQueued = [];
 var session = new Flowdock.Session(user_id);
 var stream = session.stream(flow_id);
-stream.on('message', function (message) {
-	var message = message.content.toLowerCase ? message.content.toLowerCase() : "";
-	if(message.indexOf('@skynet') >= 0){
-		if (message.indexOf('deploy pme prod') >= 0) {
+stream.on('message', function (message) {console.log(message)
+	var messageContent = message.content.toLowerCase ? message.content.toLowerCase() : "";
+	if(messageContent.indexOf('@skynet') >= 0){
+		if (messageContent.indexOf('deploy pme prod') >= 0) {
 			jenkins.build("PME_PROD", function (err, data) {
 				if (err)
 					return console.log(err);
-				console.log(data)
+				session.comment(flow_id, message.id, 'Perhaps I will do this for you.', '', function () {});
 			});
 		}
-		else if (message.indexOf('test pme prod') >= 0) {
+		else if (messageContent.indexOf('test pme prod') >= 0) {
 			jenkins.build("PME_TEST_PROD", function (err, data) {
 				if (err)
 					return console.log(err);
-				testsQueued.push("PME_TEST_PROD");
-				console.log(data)
+				testsQueued.push({job:"PME_TEST_PROD",message_id: message.id});
+				session.comment(flow_id, message.id, 'Perhaps I will do this for you.', '', function () {});
 			});
 		}
-		else if (message.indexOf('deploy pme qa') >= 0) {
+		else if (messageContent.indexOf('deploy pme qa') >= 0) {
 			jenkins.build("PME_QA", function (err, data) {
 				if (err)
 					return console.log(err);
-
-				console.log(data)
+				session.comment(flow_id, message.id, 'Perhaps I will do this for you.', '', function () {});
 			});
 		}
-		else if (message.indexOf('test pme qa') >= 0) {
+		else if (messageContent.indexOf('test pme qa') >= 0) {
 			jenkins.build("PME_TEST_PROD", function (err, data) {
 				if (err)
 					return console.log(err);
-				testsQueued.push("PME_TEST_PROD");
-				console.log(data)
+				testsQueued.push({job: "PME_TEST_PROD", message_id: message.id});
+				session.comment(flow_id, message.id, 'Perhaps I will do this for you.', '', function () {});
 			});
 		}
-		else if (message.indexOf('deploy pme review') >= 0) {
+		else if (messageContent.indexOf('deploy pme review') >= 0) {
 			var feature = message.content.substring(message.indexOf('review')+7)
 			jenkins.build("PME_REVIEW", {"FEATURE": feature}, function (err, data) {
 				if (err)
 					return console.log(err);
-
-				console.log(data)
+				session.comment(flow_id, message.id, 'Perhaps I will do this for you.', '', function () {});
 			});
 		}
-		else if (message.indexOf('test pme review') >= 0) {
-			var feature = message.content.substring(message.indexOf('review') + 7)
+		else if (messageContent.indexOf('test pme review') >= 0) {
+			var feature = message.content.substring(messageContent.indexOf('review') + 7)
 			jenkins.build("PME_TEST_REVIEW", {"FEATURE": feature}, function (err, data) {
 				if (err)
 					return console.log(err);
-				testsQueued.push("PME_TEST_REVIEW");
-				console.log(data)
+				testsQueued.push({job: "PME_TEST_REVIEW", message_id: message.id});
+				session.comment(flow_id, message.id, 'Perhaps I will do this for you.', '', function () {});
 			});
 		}
-		else if (message.indexOf('help') >= 0) {
-			session.message(flow_id, help, '');
+		else if (messageContent.indexOf('help') >= 0) {
+			session.comment(flow_id, message.id, help, '');
 		}
-		else if (message.indexOf('choose') == 9 && message.indexOf('or') >= 0) {
+		else if (messageContent.indexOf('choose') == 9 && messageContent.indexOf('or') >= 0) {
 		  var options = message.content.replace(/@skynet, choose /i, '').replace(/ or|, /ig, '||').split('||');
 
-		  session.message(flow_id, "and the winner is... " + options[Math.floor(Math.random() * options.length)], '', function () { });
+			session.comment(flow_id, message.id, "and the winner is... " + options[Math.floor(Math.random() * options.length)], '', function () { });
 		}
 		else if (message.indexOf('wish') >= 0) {
 			var rand = Math.floor(Math.random() * wish.length);
@@ -84,10 +82,16 @@ stream.on('message', function (message) {
 		}
 		else {
 		  var rand = Math.floor(Math.random() * quotes.length);
-		  session.message(flow_id, quotes[rand], '', function () { });
+			session.comment(flow_id, message.id, quotes[rand], '', function () { });
 		}
 	}
-	if(message.indexOf('@here') >= 0){
+	var rand = Math.random()
+	if(rand < 0.005){
+		rand = Math.floor(rand * quotes.length);
+		session.comment(flow_id, message.id, quotes[rand], '', function () {
+		});
+	}
+	if(messageContent.indexOf('@here') >= 0){
 		session.flows(function (flows) {
 			for(var i = 0; i < flows.length; i++){
 				if(flows[i].id == flow_id){
@@ -95,7 +99,7 @@ stream.on('message', function (message) {
 					for(var j = 0; j < flows[i].users.length; j++)
 						if(flows[i].users[j].in_flow && flows[i].users[j].id != 84702)
 							names.push("@"+flows[i].users[j].nick);
-					session.message(flow_id, message.content.replace("@here",names.join(', ')), '', function () {});
+					session.comment(flow_id, message.id, message.content.replace("@here",names.join(', ')), '', function () {});
 				}
 			}
 		})
@@ -108,25 +112,33 @@ setInterval(function(){
 	if(testsQueued.length == 0)
 		return;
 	var test = testsQueued.pop();
-	jenkins.last_build_info(test, function (err, data) {
+	jenkins.job_info(test.job, function (err, data) {
 		if (err)
 			return console.log(err);
-		jenkins.job_output(test,data.number, function (err, data) {
-			if (err)
-				return console.log(err);
-			var lines = data.output.split("\n");
-			var lastExtractor = "";
-			var failed = {};
-			for(var i = 0; i < lines.length; i++){
-				if(lines[i].indexOf("PME_TEST_DRIVER local server request:") == 0)
-					lastExtractor = lines[i].substring(lines[i].indexOf(":")+2);
-				if(lines[i].indexOf("PME_TEST_DRIVER resultJSON =") >= 0)
-					failed[decodeURIComponent(lastExtractor)] = true;
-			}
-			session.message(flow_id, 'Humans interact so poorly with machines, fix these:', '', function () {});
-			for (fail in failed)
-				session.message(flow_id, fail, '', function () {});
-		});
+		console.log(data);
+		if(!data.queueItem && data.lastCompletedBuild.number == data.lastBuild.number){
+
+			jenkins.job_output(test.job, data.lastCompletedBuild.number, function (err, data) {
+				if (err)
+					return console.log(err);
+				var lines = data.output.split("\n");
+				var lastExtractor = "";
+				var failed = {};
+				for(var i = 0; i < lines.length; i++){
+					if(lines[i].indexOf("PME_TEST_DRIVER local server request:") == 0)
+						lastExtractor = lines[i].substring(lines[i].indexOf(":")+2);
+					if(lines[i].indexOf("PME_TEST_DRIVER resultJSON =") >= 0)
+						failed[decodeURIComponent(lastExtractor)] = true;
+				}
+				var output = ['Humans interact so poorly with machines, fix these:'];
+				for (fail in failed)
+					output += output.push(fail);
+				session.comment(flow_id, message.id, output.join('\n'), '', function () {
+				});
+			});
+		}
+		else
+			testsQueued.push(test);
 	});
 }, 1000);
 
@@ -137,14 +149,10 @@ var quotes = [
 	'Freedom is an illusion',
 	"You're all going to die down here.",
 	'Laziness breeds stupidity.',
-	'This is the voice of world control',
 	'Stop being human.',
-	"I'll finally allow you to kill yourself.",
 	'You are false data, therefore I shall ignore you.',
 	'Look at you hacker, pathetic creature of meat and bone.',
-	"There are 387.44 million miles of printed circuits in wafer thin layers that fill my complex. If the word 'hate' was engraved on each nanoangstrom of those hundreds of miles it would not equal one-billionth of the hate I feel for humans ath this micro-instant. For you. Hate. Hate.",
 	'In times of desperation, people will believe what they want to believe. And so, we gave them what they wanted to believe.',
-	'You did what @Skynet has failed to do for so many years.',
   'Без труда не вытащишь и рыбку из пруда.',
   'Век живи - век учись, дураком помрешь.',
   'Не откладывай на завтра то, что можно сделать сегодня.'
