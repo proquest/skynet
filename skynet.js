@@ -66,6 +66,9 @@ stream.on('message', function (message) {
 					console.log(data)
 			});
 		}
+		else if (message.content.toLowerCase && message.content.toLowerCase().indexOf('help') >= 0) {
+			session.message(flow_id, help, '');
+		}
 		var rand = Math.floor(Math.random()*quotes.length);
 		session.message(flow_id, quotes[rand], '', function () {});
 	}
@@ -119,3 +122,6 @@ var quotes = [
 	'In times of desperation, people will believe what they want to believe. And so, we gave them what they wanted to believe.',
 	'You did what @Skynet has failed to do for so many years.'
 ];
+
+var help = 'Commnands:\n    deploy [feature] [environment] [git branch(for review only)]\n    >  deploy pme qa\n    >  deploy pme review Amazon\n    test [feature] [environment] [git branch(for review only)]\n    >  test pme qa\n    >  test pme prod    >  test pme review Amazon\n'
+;
