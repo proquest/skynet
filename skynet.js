@@ -66,6 +66,13 @@ stream.on('message', function (message) {
 					console.log(data)
 			});
 		}
+<<<<<<< HEAD
+		else if (message.content.toLowerCase && message.content.toLowerCase().indexOf('help') >= 0) {
+			session.message(flow_id, help, '');
+		}
+		var rand = Math.floor(Math.random()*quotes.length);
+		session.message(flow_id, quotes[rand], '', function () {});
+=======
 		else if (message.content.toLowerCase().indexOf('choose') == 9 && message.content.toLowerCase().indexOf('or') >= 0) {
 		  var options = message.content.replace(/@skynet, choose /i, '').replace(/ or|, /ig, '||').split('||');
 
@@ -75,6 +82,7 @@ stream.on('message', function (message) {
 		  var rand = Math.floor(Math.random() * quotes.length);
 		  session.message(flow_id, quotes[rand], '', function () { });
 		}
+>>>>>>> FETCH_HEAD
 	}
 	if(message.content.toLowerCase && message.content.toLowerCase().indexOf('@here') >= 0){
 		session.flows(function (flows) {
@@ -126,3 +134,6 @@ var quotes = [
 	'In times of desperation, people will believe what they want to believe. And so, we gave them what they wanted to believe.',
 	'You did what @Skynet has failed to do for so many years.'
 ];
+
+var help = 'Commnands:\n    deploy [feature] [environment] [git branch(for review only)]\n    >  deploy pme qa\n    >  deploy pme review Amazon\n    test [feature] [environment] [git branch(for review only)]\n    >  test pme qa\n    >  test pme prod    >  test pme review Amazon\n'
+;
