@@ -165,7 +165,7 @@ var wish = [
 	"You've been bad...no wish for you!"
 ];
 
-var cat = cats = [
+var cat = [
   "http://mlkshk.com/r/M6EO.gif", // rabbit in a hat
   "http://mlkshk.com/r/M17S.gif", // dress
   "http://mlkshk.com/r/M15O.gif", // le mis
@@ -189,4 +189,3 @@ var cat = cats = [
   "http://mlkshk.com/r/KRBA.gif", // rabbit painting
   "http://mlkshk.com/r/KL19.gif"  // lying on the ground
 ];
-
