@@ -20,51 +20,50 @@ stream.on('message', function (message) {
 		if (message.indexOf('deploy pme prod') >= 0) {
 			jenkins.build("PME_PROD", function (err, data) {
 				if (err)
-					console.log(err);
-				else
-					console.log(data)
+					return console.log(err);
+				console.log(data)
 			});
 		}
 		else if (message.indexOf('test pme prod') >= 0) {
 			jenkins.build("PME_TEST_PROD", function (err, data) {
 				if (err)
-					console.log(err);
-				else
-					console.log(data)
+					return console.log(err);
+				testsQueued.push("PME_TEST_PROD");
+				console.log(data)
 			});
 		}
 		else if (message.indexOf('deploy pme qa') >= 0) {
 			jenkins.build("PME_QA", function (err, data) {
 				if (err)
-					console.log(err);
-				else
-					console.log(data)
+					return console.log(err);
+
+				console.log(data)
 			});
 		}
 		else if (message.indexOf('test pme qa') >= 0) {
 			jenkins.build("PME_TEST_PROD", function (err, data) {
 				if (err)
-					console.log(err);
-				else
-					console.log(data)
+					return console.log(err);
+				testsQueued.push("PME_TEST_PROD");
+				console.log(data)
 			});
 		}
 		else if (message.indexOf('deploy pme review') >= 0) {
 			var feature = message.content.substring(message.indexOf('review')+7)
 			jenkins.build("PME_REVIEW", {"FEATURE": feature}, function (err, data) {
 				if (err)
-					console.log(err);
-				else
-					console.log(data)
+					return console.log(err);
+
+				console.log(data)
 			});
 		}
 		else if (message.indexOf('test pme review') >= 0) {
 			var feature = message.content.substring(message.indexOf('review') + 7)
 			jenkins.build("PME_TEST_REVIEW", {"FEATURE": feature}, function (err, data) {
 				if (err)
-					console.log(err);
-				else
-					console.log(data)
+					return console.log(err);
+				testsQueued.push("PME_TEST_REVIEW");
+				console.log(data)
 			});
 		}
 		else if (message.indexOf('help') >= 0) {
@@ -100,10 +99,11 @@ stream.on('message', function (message) {
 setInterval(function(){
 	if(testsQueued.length == 0)
 		return;
-	jenkins.last_build_info('PME_TEST_REVIEW', function (err, data) {
+	var test = testsQueued.pop();
+	jenkins.last_build_info(test, function (err, data) {
 		if (err)
 			return console.log(err);
-		jenkins.job_output('PME_TEST_REVIEW',data.number, function (err, data) {
+		jenkins.job_output(test,data.number, function (err, data) {
 			if (err)
 				return console.log(err);
 			var lines = data.output.split("\n");
@@ -115,8 +115,9 @@ setInterval(function(){
 				if(lines[i].indexOf("PME_TEST_DRIVER resultJSON =") >= 0)
 					failed[decodeURIComponent(lastExtractor)] = true;
 			}
+			session.message(flow_id, 'Humans interact so poorly with machines, fix these:', '', function () {});
 			for (fail in failed)
-				console.log(fail);
+				session.message(flow_id, fail, '', function () {});
 		});
 	});
 }, 1000);
