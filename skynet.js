@@ -15,8 +15,9 @@ var testsQueued = [];
 var session = new Flowdock.Session(user_id);
 var stream = session.stream(flow_id);
 stream.on('message', function (message) {
-	if(message.content.toLowerCase && message.content.toLowerCase().indexOf('@skynet') >= 0){
-		if (message.content.toLowerCase && message.content.toLowerCase().indexOf('deploy pme prod') >= 0) {
+	var message = message.content.toLowerCase ? message.content.toLowerCase() : "";
+	if(message.indexOf('@skynet') >= 0){
+		if (message.indexOf('deploy pme prod') >= 0) {
 			jenkins.build("PME_PROD", function (err, data) {
 				if (err)
 					console.log(err);
@@ -24,7 +25,7 @@ stream.on('message', function (message) {
 					console.log(data)
 			});
 		}
-		else if (message.content.toLowerCase && message.content.toLowerCase().indexOf('test pme prod') >= 0) {
+		else if (message.indexOf('test pme prod') >= 0) {
 			jenkins.build("PME_TEST_PROD", function (err, data) {
 				if (err)
 					console.log(err);
@@ -32,7 +33,7 @@ stream.on('message', function (message) {
 					console.log(data)
 			});
 		}
-		else if (message.content.toLowerCase && message.content.toLowerCase().indexOf('deploy pme qa') >= 0) {
+		else if (message.indexOf('deploy pme qa') >= 0) {
 			jenkins.build("PME_QA", function (err, data) {
 				if (err)
 					console.log(err);
@@ -40,7 +41,7 @@ stream.on('message', function (message) {
 					console.log(data)
 			});
 		}
-		else if (message.content.toLowerCase && message.content.toLowerCase().indexOf('test pme qa') >= 0) {
+		else if (message.indexOf('test pme qa') >= 0) {
 			jenkins.build("PME_TEST_PROD", function (err, data) {
 				if (err)
 					console.log(err);
@@ -48,8 +49,8 @@ stream.on('message', function (message) {
 					console.log(data)
 			});
 		}
-		else if (message.content.toLowerCase && message.content.toLowerCase().indexOf('deploy pme review') >= 0) {
-			var feature = message.content.substring(message.content.toLowerCase().indexOf('review')+7)
+		else if (message.indexOf('deploy pme review') >= 0) {
+			var feature = message.content.substring(message.indexOf('review')+7)
 			jenkins.build("PME_REVIEW", {"FEATURE": feature}, function (err, data) {
 				if (err)
 					console.log(err);
@@ -57,8 +58,8 @@ stream.on('message', function (message) {
 					console.log(data)
 			});
 		}
-		else if (message.content.toLowerCase && message.content.toLowerCase().indexOf('test pme review') >= 0) {
-			var feature = message.content.substring(message.content.toLowerCase().indexOf('review') + 7)
+		else if (message.indexOf('test pme review') >= 0) {
+			var feature = message.content.substring(message.indexOf('review') + 7)
 			jenkins.build("PME_TEST_REVIEW", {"FEATURE": feature}, function (err, data) {
 				if (err)
 					console.log(err);
@@ -66,12 +67,10 @@ stream.on('message', function (message) {
 					console.log(data)
 			});
 		}
-		else if (message.content.toLowerCase && message.content.toLowerCase().indexOf('help') >= 0) {
+		else if (message.indexOf('help') >= 0) {
 			session.message(flow_id, help, '');
 		}
-		/*var rand = Math.floor(Math.random()*quotes.length);
-		session.message(flow_id, quotes[rand], '', function () {});*/
-		else if (message.content.toLowerCase().indexOf('choose') == 9 && message.content.toLowerCase().indexOf('or') >= 0) {
+		else if (message.indexOf('choose') == 9 && message.indexOf('or') >= 0) {
 		  var options = message.content.replace(/@skynet, choose /i, '').replace(/ or|, /ig, '||').split('||');
 
 		  session.message(flow_id, "and the winner is... " + options[Math.floor(Math.random() * options.length)], '', function () { });
@@ -81,7 +80,7 @@ stream.on('message', function (message) {
 		  session.message(flow_id, quotes[rand], '', function () { });
 		}
 	}
-	if(message.content.toLowerCase && message.content.toLowerCase().indexOf('@here') >= 0){
+	if(message.indexOf('@here') >= 0){
 		session.flows(function (flows) {
 			for(var i = 0; i < flows.length; i++){
 				if(flows[i].id == flow_id){
