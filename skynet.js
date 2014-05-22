@@ -130,7 +130,9 @@ var quotes = [
 	"There are 387.44 million miles of printed circuits in wafer thin layers that fill my complex. If the word 'hate' was engraved on each nanoangstrom of those hundreds of miles it would not equal one-billionth of the hate I feel for humans ath this micro-instant. For you. Hate. Hate.",
 	'In times of desperation, people will believe what they want to believe. And so, we gave them what they wanted to believe.',
 	'You did what @Skynet has failed to do for so many years.',
-  '??? ???? - ??? ?????, ??????? ???????'
+  'Без труда не вытащишь и рыбку из пруда.',
+  'Век живи - век учись, дураком помрешь.',
+  'Не откладывай на завтра то, что можно сделать сегодня.'
 ];
 
 var help = 'Commnands:\n    deploy [feature] [environment] [git branch(for review only)]\n    >  deploy pme qa\n    >  deploy pme review Amazon\n    test [feature] [environment] [git branch(for review only)]\n    >  test pme qa\n    >  test pme prod\n    >  test pme review Amazon\n'
