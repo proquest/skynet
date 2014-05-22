@@ -69,7 +69,7 @@ stream.on('message', function (message) {
 		else if (message.content.toLowerCase().indexOf('choose') == 9 && message.content.toLowerCase().indexOf('or') >= 0) {
 		  var options = message.content.replace(/@skynet, choose /i, '').replace(/ or /ig, '||').split('||');
 
-		  console.log(options[Math.floor(Math.random() * options.length)]);
+		  session.message(flow_id, options[Math.floor(Math.random() * options.length)], '', function () { }); 
 		}
 		var rand = Math.floor(Math.random()*quotes.length);
 		session.message(flow_id, quotes[rand], '', function () {});
