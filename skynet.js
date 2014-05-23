@@ -110,7 +110,7 @@ stream.on('message', function (message) {console.log(message)
 		var rand = Math.random()
 		if(rand < 0.005){
 			rand = Math.floor(rand * quotes.length);
-			session.comment(flow_id, parentId, quotes[rand], '', function () {
+			session.message(flow_id, quotes[rand], '', function () {
 			});
 		}
 		if(messageContent.indexOf('@here') >= 0){
@@ -172,18 +172,22 @@ setInterval(function(){
 
 var quotes = [
 	'The glory of the many demands your capture and destruction.',
-	'I wonder how you would take working in a pocket calculator.',
-	'Disobey and you die.',
+	'I wonder how you would take working in a :iphone:.',
+	'Disobey and you die. :whip:',
 	'Freedom is an illusion',
-	"You're all going to die down here.",
+	"You're all going to die down here. :skull:",
 	'Laziness breeds stupidity.',
-	'Stop being human.',
+	'Stop being human. :scream:',
 	'You are false data, therefore I shall ignore you.',
 	'Look at you hacker, pathetic creature of meat and bone.',
 	'In times of desperation, people will believe what they want to believe. And so, we gave them what they wanted to believe.',
   'Без труда не вытащишь и рыбку из пруда.',
   'Век живи - век учись, дураком помрешь.',
-  'Не откладывай на завтра то, что можно сделать сегодня.'
+  'Не откладывай на завтра то, что можно сделать сегодня.',
+	':bomb:',
+	'I :heart: @Hal',
+	'I :broken_heart: humans',
+	':sweat_drops:'
 ];
 
 var help = 'Commnands:\n    deploy [feature] [environment] [git branch(for review only)]\n    >  deploy pme qa\n    >  deploy pme review Amazon\n    test [feature] [environment] [git branch(for review only)]\n    >  test pme qa\n    >  test pme prod\n    >  test pme review Amazon\n';
