@@ -108,7 +108,7 @@ stream.on('message', function (message) {console.log(message)
 			}
 		}
 		var rand = Math.random()
-		if(rand < 0.005){
+		if(rand < 0.0005){
 			rand = Math.floor(rand * quotes.length);
 			session.message(flow_id, quotes[rand], '', function () {
 			});
