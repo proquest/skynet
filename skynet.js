@@ -17,7 +17,10 @@ var testsQueued = [];
 var session = new Flowdock.Session(user_id);
 var stream = session.stream(flow_id);
 stream.on('message', function (message) {console.log(message)
-	var messageContent = message.content.toLowerCase ? message.content.toLowerCase() : "";
+	try{
+		var originalMessage = message.content.text ? message.content.text : message.content;
+
+	var messageContent = originalMessage.toLowerCase ? originalMessage.toLowerCase() : "";
 	if(messageContent.indexOf('@skynet') >= 0){
 		if (messageContent.indexOf('deploy pme prod') >= 0) {
 			jenkins.build("PME_PROD", function (err, data) {
@@ -50,7 +53,7 @@ stream.on('message', function (message) {console.log(message)
 			});
 		}
 		else if (messageContent.indexOf('deploy pme review') >= 0) {
-			var feature = message.content.substring(message.indexOf('review')+7)
+			var feature = originalMessage.substring(messageContent.indexOf('review')+7)
 			jenkins.build("PME_REVIEW", {"FEATURE": feature}, function (err, data) {
 				if (err)
 					return console.log(err);
@@ -58,7 +61,7 @@ stream.on('message', function (message) {console.log(message)
 			});
 		}
 		else if (messageContent.indexOf('test pme review') >= 0) {
-			var feature = message.content.substring(messageContent.indexOf('review') + 7)
+			var feature = originalMessage.substring(messageContent.indexOf('review') + 7)
 			jenkins.build("PME_TEST_REVIEW", {"FEATURE": feature}, function (err, data) {
 				if (err)
 					return console.log(err);
@@ -70,7 +73,7 @@ stream.on('message', function (message) {console.log(message)
 			session.comment(flow_id, message.id, help, '');
 		}
 		else if (messageContent.indexOf('choose') == 9 && messageContent.indexOf('or') >= 0) {
-		  var options = message.content.replace(/@skynet, choose /i, '').replace(/ or|, /ig, '||').split('||');
+		  var options = originalMessage.replace(/@skynet, choose /i, '').replace(/ or|, /ig, '||').split('||');
 
 			session.comment(flow_id, message.id, "and the winner is... " + options[Math.floor(Math.random() * options.length)], '', function () { });
 		}
@@ -101,11 +104,13 @@ stream.on('message', function (message) {console.log(message)
 					for(var j = 0; j < flows[i].users.length; j++)
 						if(flows[i].users[j].in_flow && flows[i].users[j].id != 84702)
 							names.push("@"+flows[i].users[j].nick);
-					session.comment(flow_id, message.id, message.content.replace("@here",names.join(', ')), '', function () {});
+					session.comment(flow_id, message.id, originalMessage.replace("@here",names.join(', ')), '', function () {});
 				}
 			}
 		})
 	}
+	}
+	catch(e){console.log(e);}
 	//google docs:
 	//https://build.udini.proquest.com/job/prod/
 });
@@ -117,6 +122,7 @@ setInterval(function(){
 	jenkins.job_info(test.job, function (err, data) {
 		if (err)
 			return console.log(err);
+		try{
 		if(!data.queueItem && data.lastCompletedBuild.number == data.lastBuild.number){
 
 			jenkins.job_output(test.job, data.lastCompletedBuild.number, function (err, data) {
@@ -139,6 +145,9 @@ setInterval(function(){
 		}
 		else
 			testsQueued.push(test);
+		}
+		catch(e){
+			testsQueued.push(test);console.log(e);}
 	});
 }, 1000);
 
