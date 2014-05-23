@@ -18,7 +18,7 @@ var session = new Flowdock.Session(user_id);
 var stream = session.stream(flow_id);
 stream.on('message', function (message) {console.log(message)
 	try{
-		var originalMessage = message.content.text ? message.content.text : message.content;
+		var originalMessage = message.content;
 
 	var messageContent = originalMessage.toLowerCase ? originalMessage.toLowerCase() : "";
 	if(messageContent.indexOf('@skynet') >= 0){
