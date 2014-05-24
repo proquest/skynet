@@ -11,7 +11,6 @@ if(args.length >= 2){
 	if(args.length == 5)
 		jenkins_server = args[3];
 }
-
 var jenkins = Jenkins.init("http://" + jenkins_id + ":" + jenkins_pass + "@"+ jenkins_server+":8080");
 var testsQueued = [];
 var session = new Flowdock.Session(user_id);
@@ -142,7 +141,7 @@ setInterval(function(){
 		if (err)
 			return console.log(err);
 		try{
-		if(!data.queueItem && data.lastCompletedBuild.number == data.lastBuild.number){
+		if(!data.queueItem && data.lastCompletedBuild.number == data.lastBuild.number ){
 
 			jenkins.job_output(test.job, data.lastCompletedBuild.number, function (err, data) {
 				if (err)
@@ -159,7 +158,7 @@ setInterval(function(){
 				var output = ['Humans interact so poorly with machines, fix these:'];
 				for (fail in failed)
 					output.push(fail);
-				session.comment(flow_id, message.id, output.join('\n'), '', function () {});
+				session.comment(flow_id, test.message_id, output.join('\n'), '', function () {});
 			});
 		}
 		else
@@ -168,7 +167,7 @@ setInterval(function(){
 		catch(e){
 			testsQueued.push(test);console.log(e);}
 	});
-}, 1000);
+}, 10000);
 
 var quotes = [
 	'The glory of the many demands your capture and destruction.',
