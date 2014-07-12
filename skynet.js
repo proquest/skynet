@@ -17,12 +17,6 @@ var session = new Flowdock.Session(user_id);
 var stream = session.stream(flow_id);
 var lastMessage = (new Date()).valueOf();
 
-jenkins.build("prod", function (err, data) {
-  if (err)
-    return console.log(err);
-  console.log("complete");
-});
-
 function getParentId(message){
 	if(message.content.text && message.tags.length > 0){
 		for(var i = 0; i < message.tags.length; i++)
@@ -174,7 +168,7 @@ function processMessage(message) {
     console.log(e);
   }
 }
-//stream.on('message', processMessage);
+stream.on('message', processMessage);
 setInterval(function(){
   var now = (new Date()).valueOf(),timeout = 1000*60*15;
   if(lastMessage+timeout <= now){
