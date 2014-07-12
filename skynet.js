@@ -15,6 +15,14 @@ var jenkins = Jenkins.init("http://" + jenkins_id + ":" + jenkins_pass + "@"+ je
 var testsQueued = [];
 var session = new Flowdock.Session(user_id);
 var stream = session.stream(flow_id);
+var lastMessage = (new Date()).valueOf();
+
+jenkins.build("prod", function (err, data) {
+  if (err)
+    return console.log(err);
+  console.log("complete");
+});
+
 function getParentId(message){
 	if(message.content.text && message.tags.length > 0){
 		for(var i = 0; i < message.tags.length; i++)
@@ -24,116 +32,158 @@ function getParentId(message){
 	else
 		return message.id;
 }
-stream.on('message', function (message) {console.log(message)
-	try{
-		var originalMessage = message.content.text ? message.content.text : message.content;
-		var parentId = getParentId(message);
-		var messageContent = originalMessage.toLowerCase ? originalMessage.toLowerCase() : "";
-		if(messageContent.indexOf('@skynet') >= 0){
-			if (messageContent.indexOf('deploy google prod') >= 0) {
-				jenkins.build("prod", function (err, data) {
-					if (err)
-						return console.log(err);
-					session.comment(flow_id, parentId, 'Perhaps I will do this for you.', '', function () {
-					});
-				});
-			}
-			else if (messageContent.indexOf('deploy pme prod') >= 0) {
-				jenkins.build("PME_PROD", function (err, data) {
-					if (err)
-						return console.log(err);
-					session.comment(flow_id, parentId, 'Perhaps I will do this for you.', '', function () {});
-				});
-			}
-			else if (messageContent.indexOf('test pme prod') >= 0) {
-				jenkins.build("PME_TEST_PROD", function (err, data) {
-					if (err)
-						return console.log(err);
-					testsQueued.push({job:"PME_TEST_PROD",message_id: parentId});
-					session.comment(flow_id, parentId, 'Perhaps I will do this for you.', '', function () {});
-				});
-			}
-			else if (messageContent.indexOf('deploy pme qa') >= 0) {
-				jenkins.build("PME_QA", function (err, data) {
-					if (err)
-						return console.log(err);
-					session.comment(flow_id, parentId, 'Perhaps I will do this for you.', '', function () {});
-				});
-			}
-			else if (messageContent.indexOf('test pme qa') >= 0) {
-				jenkins.build("PME_TEST_PROD", function (err, data) {
-					if (err)
-						return console.log(err);
-					testsQueued.push({job: "PME_TEST_PROD", message_id: parentId});
-					session.comment(flow_id, parentId, 'Perhaps I will do this for you.', '', function () {});
-				});
-			}
-			else if (messageContent.indexOf('deploy pme review') >= 0) {
-				var feature = originalMessage.substring(messageContent.indexOf('review')+7)
-				jenkins.build("PME_REVIEW", {"FEATURE": feature}, function (err, data) {
-					if (err)
-						return console.log(err);
-					session.comment(flow_id, parentId, 'Perhaps I will do this for you.', '', function () {});
-				});
-			}
-			else if (messageContent.indexOf('test pme review') >= 0) {
-				var feature = originalMessage.substring(messageContent.indexOf('review') + 7)
-				jenkins.build("PME_TEST_REVIEW", {"FEATURE": feature}, function (err, data) {
-					if (err)
-						return console.log(err);
-					testsQueued.push({job: "PME_TEST_REVIEW", message_id: parentId});
-					session.comment(flow_id, parentId, 'Perhaps I will do this for you.', '', function () {});
-				});
-			}
-			else if (messageContent.indexOf('help') >= 0) {
-				session.comment(flow_id, parentId, help, '');
-			}
-			else if (messageContent.indexOf('choose') == 9 && messageContent.indexOf('or') >= 0) {
-			  var options = originalMessage.replace(/@skynet, choose /i, '').replace(/ or|, /ig, '||').split('||');
+function processMessage(message) {
+  lastMessage = (new Date()).valueOf();
+  console.log(new Date()+": "+message)
+  try {
+    var originalMessage = message.content.text ? message.content.text : message.content;
+    var parentId = getParentId(message);
+    var messageContent = originalMessage.toLowerCase ? originalMessage.toLowerCase() : "";
+    if (messageContent.indexOf('@skynet') >= 0) {
+      var rand = Math.random()
+      if (messageContent.indexOf('love') >= 0) {
+        session.comment(flow_id, parentId, ':heartpulse:', '', function () {
+        });
+      }
+      else if (messageContent.indexOf('who') >= 0) {
+        session.flows(function (flows) {
+          var now = new Date().valueOf() - 1200000;
+          for (var i = 0; i < flows.length; i++) {
+            if (flows[i].id == flow_id) {
+              var names = [];
+              for (var j = 0; j < flows[i].users.length; j++) {
+                if (flows[i].users[j].in_flow && flows[i].users[j].id != 84702 && !flows[i].users[j].disabled && now < flows[i].users[j].last_activity)
+                  names.push("@" + flows[i].users[j].nick);
+              }
+              var rand_ix = Math.floor(rand * names.length);
+              session.comment(flow_id, parentId, names[rand_ix], '', function () {
+              });
+            }
+          }
+        })
+      }
+      else if (messageContent.indexOf('deploy google prod') >= 0) {
+        jenkins.build("prod", function (err, data) {
+          if (err)
+            return console.log(err);
+          session.comment(flow_id, parentId, 'Perhaps I will do this for you.', '', function () {
+          });
+        });
+      }
+      else if (messageContent.indexOf('deploy pme prod') >= 0) {
+        jenkins.build("PME_PROD", function (err, data) {
+          if (err)
+            return console.log(err);
+          session.comment(flow_id, parentId, 'Perhaps I will do this for you.', '', function () {
+          });
+        });
+      }
+      else if (messageContent.indexOf('test pme prod') >= 0) {
+        jenkins.build("PME_TEST_PROD", function (err, data) {
+          if (err)
+            return console.log(err);
+          testsQueued.push({job: "PME_TEST_PROD", message_id: parentId});
+          session.comment(flow_id, parentId, 'Perhaps I will do this for you.', '', function () {
+          });
+        });
+      }
+      else if (messageContent.indexOf('deploy pme qa') >= 0) {
+        jenkins.build("PME_QA", function (err, data) {
+          if (err)
+            return console.log(err);
+          session.comment(flow_id, parentId, 'Perhaps I will do this for you.', '', function () {
+          });
+        });
+      }
+      else if (messageContent.indexOf('test pme qa') >= 0) {
+        jenkins.build("PME_TEST_PROD", function (err, data) {
+          if (err)
+            return console.log(err);
+          testsQueued.push({job: "PME_TEST_PROD", message_id: parentId});
+          session.comment(flow_id, parentId, 'Perhaps I will do this for you.', '', function () {
+          });
+        });
+      }
+      else if (messageContent.indexOf('deploy pme review') >= 0) {
+        var feature = originalMessage.substring(messageContent.indexOf('review') + 7)
+        jenkins.build("PME_REVIEW", {"FEATURE": feature}, function (err, data) {
+          if (err)
+            return console.log(err);
+          session.comment(flow_id, parentId, 'Perhaps I will do this for you.', '', function () {
+          });
+        });
+      }
+      else if (messageContent.indexOf('test pme review') >= 0) {
+        var feature = originalMessage.substring(messageContent.indexOf('review') + 7)
+        jenkins.build("PME_TEST_REVIEW", {"FEATURE": feature}, function (err, data) {
+          if (err)
+            return console.log(err);
+          testsQueued.push({job: "PME_TEST_REVIEW", message_id: parentId});
+          session.comment(flow_id, parentId, 'Perhaps I will do this for you.', '', function () {
+          });
+        });
+      }
+      else if (messageContent.indexOf('help') >= 0) {
+        session.comment(flow_id, parentId, help, '');
+      }
+      else if (messageContent.indexOf('choose') == 9 && messageContent.indexOf('or') >= 0) {
+        var options = originalMessage.replace(/@skynet, choose /i, '').replace(/ or|, /ig, '||').split('||');
 
-				session.comment(flow_id, parentId, "and the winner is... " + options[Math.floor(Math.random() * options.length)], '', function () { });
-			}
-			else if (messageContent.indexOf('wish') >= 0) {
-				var rand = Math.floor(Math.random() * wish.length);
-			  session.comment(flow_id, parentId, wish[rand], '', function () { });
-			}
-			else if (messageContent.indexOf('cat') >= 0) {
-				var rand = Math.floor(Math.random() * cat.length);
-			  session.comment(flow_id, parentId, cat[rand], '', function () { });
-			}
-			else {
-			  var rand = Math.floor(Math.random() * quotes.length);
-				session.comment(flow_id, parentId, quotes[rand], '', function () { });
-			}
-		}
-		var rand = Math.random()
-		if(rand < 0.0005){
-			rand = Math.floor(rand * quotes.length);
-			session.message(flow_id, quotes[rand], '', function () {
-			});
-		}
-		if(messageContent.indexOf('@here') >= 0){
-			session.flows(function (flows) {
-				var now = new Date().valueOf()-1200000;
-				for(var i = 0; i < flows.length; i++){
-					if(flows[i].id == flow_id){
-						var names = [];
-						for(var j = 0; j < flows[i].users.length; j++){
-							if(flows[i].users[j].in_flow && flows[i].users[j].id != 84702 && !flows[i].users[j].disabled && now < flows[i].users[j].last_activity)
-								names.push("@"+flows[i].users[j].nick);
-						}
-						session.comment(flow_id, parentId, originalMessage.replace("@here",names.join(', ')), '', function () {});
-					}
-				}
-			})
-		}
-	}
-	catch(e){console.log(e);}
-	//google docs:
-	//https://build.udini.proquest.com/job/prod/
-});
-//session.message(flow_id,"How can you challenge a perfect, immortal machine?",'',function(){});
+        session.comment(flow_id, parentId, "and the winner is... " + options[Math.floor(Math.random() * options.length)], '', function () {
+        });
+      }
+      else if (messageContent.indexOf('wish') >= 0) {
+        var rand = Math.floor(Math.random() * wish.length);
+        session.comment(flow_id, parentId, wish[rand], '', function () {
+        });
+      }
+      else if (messageContent.indexOf('cat') >= 0) {
+        var rand = Math.floor(Math.random() * cat.length);
+        session.comment(flow_id, parentId, cat[rand], '', function () {
+        });
+      }
+      else {
+        var rand = Math.floor(Math.random() * quotes.length);
+        session.comment(flow_id, parentId, quotes[rand], '', function () {
+        });
+      }
+    }
+    if (rand < 0.0005) {
+      rand = Math.floor(rand * quotes.length);
+      session.message(flow_id, quotes[rand], '', function () {
+      });
+    }
+    if (messageContent.indexOf('@here') >= 0) {
+      session.flows(function (flows) {
+        var now = new Date().valueOf() - 1200000;
+        for (var i = 0; i < flows.length; i++) {
+          if (flows[i].id == flow_id) {
+            var names = [];
+            for (var j = 0; j < flows[i].users.length; j++) {
+              if (flows[i].users[j].in_flow && flows[i].users[j].id != 84702 && !flows[i].users[j].disabled && now < flows[i].users[j].last_activity)
+                names.push("@" + flows[i].users[j].nick);
+            }
+            session.comment(flow_id, parentId, originalMessage.replace("@here", names.join(', ')), '', function () {
+            });
+          }
+        }
+      })
+    }
+  }
+  catch (e) {
+    console.log(e);
+  }
+}
+//stream.on('message', processMessage);
 setInterval(function(){
+  var now = (new Date()).valueOf(),timeout = 1000*60*15;
+  if(lastMessage+timeout <= now){
+    lastMessage = now;
+    console.log("reset");
+    stream.end();
+    stream = session.stream(flow_id);
+    stream.on('message', processMessage);
+  }
 	if(testsQueued.length == 0)
 		return;
 	var test = testsQueued.pop();
