@@ -26,7 +26,7 @@ var all = ["50abd8311448f9bb320124b7"/*Nicky*/, "5249a3f58439b14f0b004ba6"/*Eric
   developers = ["50b79366d64660800100070f"/*Jeff*/, "5253045c3bb54f4739007976"/*Caistarrin*/, "50c76a8e1a9624e36901cd5e"/*Alla*/, "50c617c2de78ae52360135d7"/*Jay*/],
   qa = ["50a12a19b906c4b13402c90b"/*Vinh*/, "50a12a7c61f044950e00234e"/*Airaka*/],
   done = ["50c5130cc583e4a46f001572", "52b097968685fefe5200aa62", "50c51318c583e4a46f001579", "50c51325c583e4a46f001580", "53a06a7365d3b91cf4bbdafe"],
-  name = {"50abd8311448f9bb320124b7":"Nicky", "5249a3f58439b14f0b004ba6":"Eric","50a12a19b906c4b13402c90b":"Vinh", "50a12a7c61f044950e00234e":"Airaka", "50b79366d64660800100070f":"Jeff", "5253045c3bb54f4739007976":"Caistarrin", "50c76a8e1a9624e36901cd5e":"Alla", "50c617c2de78ae52360135d7":"Jay"}
+  name = {"50abd8311448f9bb320124b7":"Eric", "5249a3f58439b14f0b004ba6":"Nicky","50a12a19b906c4b13402c90b":"Vinh", "50a12a7c61f044950e00234e":"Airaka", "50b79366d64660800100070f":"Jeff", "5253045c3bb54f4739007976":"Caistarrin", "50c76a8e1a9624e36901cd5e":"Alla", "50c617c2de78ae52360135d7":"Jay"}
   devRatio = 2 / 3,
   startDate = new Date("6/9/2014"),
   sprintPayout = 1000,
@@ -57,10 +57,10 @@ function getBounties(callback){
               thisBounty += bounty;
               var id = comment.indexOf("bug") >= 0 ? "skynet" : comments.actions[k].idMemberCreator,
                 obj = membersBounty[id];
+              //console.log(name[id] + " spent " + bounty + " " + comments.name);
 
               if (obj) {
                 obj.flash += bounty;
-
               }
               else {
                 membersBounty[id] = {"flash": bounty, "awarded": (owners.indexOf(id) >= 0 ? totalOwnerBank : 0)};
@@ -71,7 +71,7 @@ function getBounties(callback){
             awardBounty(comments.idMembers, thisBounty, comments.name);
           }
           if(asyncStack.length == 0){
-            var winners = [{name:"@Skynet",bounty:"∞"}]//&infin;
+            var winners = []
             for(var key in membersBounty){
               winners.push({id:key, name:"@"+name[key],bounty:membersBounty[key].awarded,spent: membersBounty[key].flash});
             }
@@ -92,13 +92,13 @@ function getBounties(callback){
     for (var i = 0; i < members.length; i++) {
       if (developers.indexOf(members[i]) >= 0 || qa.indexOf(members[i]) >= 0) {
         var award = amount(members[i], bounty, (developers.indexOf(members[i]) >= 0 ? developerCount : qaCount));
+        //console.log(name[members[i]] + " earned " + award + " " + title);
         if (membersBounty[members[i]]) {
           membersBounty[members[i]].awarded += award;
         }
         else {
           membersBounty[members[i]] = {"flash": 0, "awarded": award, "fullName": members[i]};
         }
-        console.log(name[members[i]] +" "+award+" "+title)
       }
     }
   }
@@ -128,22 +128,38 @@ function processMessage(message) {
     var originalMessage = message.content.text ? message.content.text : message.content;
     var parentId = getParentId(message);
     var messageContent = originalMessage.toLowerCase ? originalMessage.toLowerCase() : "";
-    if (messageContent.indexOf('@skynet') >= 0) {
+    if (messageContent.indexOf('@skynet') >= 0 && message.user != "84702") {
       var rand = Math.random()
-      if(messageContent.indexOf("who's winning?") >= 0){
-
+      if(messageContent.indexOf("who's winning") >= 0 || messageContent.indexOf("who is winning") >= 0){
         //@skynet who's winning?
         //@skynet who's winning this sprint?
         getBounties(function(data){
           data.sort(function (a, b) {
             return b.bounty - a.bounty;
-          })
+          });
+          var output = "@Skynet: ∞\n";
           for(var i = 0; i < data.length; i++){
-            if (data[i].name == "@Skynet" || developers.indexOf(data[i].id) != -1 || qa.indexOf(data[i].id) != -1)
-              session.comment(flow_id, parentId, data[i].name+": "+data[i].bounty, '', function () {});
+            if (developers.indexOf(data[i].id) != -1 || qa.indexOf(data[i].id) != -1)
+             output += data[i].name + ": " + data[i].bounty+"\n";
           }
+
+          session.comment(flow_id, parentId, output, '', function () {});
         });
+      }
+      else if (messageContent.indexOf("who has flash") >= 0) {
         //@skynet who has flash?
+        getBounties(function (data) {
+          data.sort(function (a, b) {
+            return (b.bounty - b.spent) - (a.bounty - a.spent);
+          });
+          var output = "@Skynet: ∞\n";
+          for (var i = 0; i < data.length; i++) {
+            if (owners.indexOf(data[i].id) != -1 || developers.indexOf(data[i].id) != -1 || qa.indexOf(data[i].id) != -1)
+              output += data[i].name + ": " + (data[i].bounty - data[i].spent) + "\n";
+          }
+
+          session.comment(flow_id, parentId, output, '', function () {});
+        });
       }
       else if (messageContent.indexOf('love') >= 0) {
         session.comment(flow_id, parentId, ':heartpulse:', '', function () {
@@ -252,11 +268,7 @@ function processMessage(message) {
         });
       }
     }
-    if (rand < 0.0005) {
-      rand = Math.floor(rand * quotes.length);
-      session.message(flow_id, quotes[rand], '', function () {
-      });
-    }
+
     if (messageContent.indexOf('@here') >= 0) {
       session.flows(function (flows) {
         var now = new Date().valueOf() - 1200000;
