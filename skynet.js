@@ -36,6 +36,7 @@ var all = ["50abd8311448f9bb320124b7"/*Nicky*/, "5249a3f58439b14f0b004ba6"/*Eric
   membersBounty = {};
 function getBounties(callback){
   var asyncStack = ["board"];
+  membersBounty = {};
   trello.get("1/board/slcwg4g9/lists", { cards: "open" }, function (err, data) {
     asyncStack.pop()
     if (err) throw err;
@@ -122,14 +123,14 @@ function getParentId(message){
 }
 function processMessage(message) {
   lastMessage = (new Date()).valueOf();
-  console.log(new Date()+": "+message)
+  console.log(new Date()+": "+JSON.stringify(message));
   try {
     var originalMessage = message.content.text ? message.content.text : message.content;
     var parentId = getParentId(message);
     var messageContent = originalMessage.toLowerCase ? originalMessage.toLowerCase() : "";
     if (messageContent.indexOf('@skynet') >= 0) {
       var rand = Math.random()
-      if(messageContent.indexOf("who's winning?")){
+      if(messageContent.indexOf("who's winning?") >= 0){
 
         //@skynet who's winning?
         //@skynet who's winning this sprint?
@@ -138,7 +139,7 @@ function processMessage(message) {
             return b.bounty - a.bounty;
           })
           for(var i = 0; i < data.length; i++){
-            if(developers[data[i].id] || qa[data[i].id])
+            if (data[i].name == "@Skynet" || developers.indexOf(data[i].id) != -1 || qa.indexOf(data[i].id) != -1)
               session.comment(flow_id, parentId, data[i].name+": "+data[i].bounty, '', function () {});
           }
         });
