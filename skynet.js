@@ -30,13 +30,19 @@ var all = ["50abd8311448f9bb320124b7"/*Nicky*/, "5249a3f58439b14f0b004ba6"/*Eric
   devRatio = 2 / 3,
   startDate = new Date("6/9/2014"),
   sprintPayout = 1000,
-  sprintDuration = 14,
+  sprintDuration = 14 * 1000 * 60 * 60 * 24,//14 days
   ownerPayout = (new Date() - startDate),
-  totalOwnerBank = Math.floor(ownerPayout / (1000 * 60 * 60 * 24 * sprintDuration)) * sprintPayout,
+  totalOwnerBank = Math.floor(ownerPayout / sprintDuration) * sprintPayout,
   membersBounty = {};
-function getBounties(callback){
+function getBounties(callback,onlyCurrentSprint){
   var asyncStack = ["board"];
   membersBounty = {};
+  var thisSprintStart = startDate.valueOf(), now = new Date().valueOf();
+  while (thisSprintStart < now && onlyCurrentSprint){
+    thisSprintStart = thisSprintStart + sprintDuration;
+  }
+  if(onlyCurrentSprint)
+    thisSprintStart = thisSprintStart - sprintDuration;
   trello.get("1/board/slcwg4g9/lists", { cards: "open" }, function (err, data) {
     asyncStack.pop()
     if (err) throw err;
@@ -44,30 +50,39 @@ function getBounties(callback){
       for (var j = 0; j < data[i].cards.length; j++) {
         var card = data[i].cards[j];
         asyncStack.push("cards")
-        trello.get("1/cards/" + card.id, { actions: "commentCard" }, function (err, comments) {
+        trello.get("1/cards/" + card.id, { actions: "commentCard,updateCard:idList" }, function (err, comments) {
           asyncStack.pop()
           if (err) throw err;
-          var thisBounty = 0;
+          var thisBounty = 0, thisAwardedDate = new Date().valueOf();
           for (var k = 0; k < comments.actions.length; k++) {
-            var comment = comments.actions[k].data.text.toLowerCase(),
-              bountyRegex = /[^a-zA-Z]\d|^\d/,
-              bounty = comment.indexOf("agree") == -1 && comment.length < 100 && bountyRegex.test(comment) ? parseInt(comment.replace(/[^\d]/g, "")) : undefined;
+            if(comments.actions[k].type == "commentCard"){
+              var comment = comments.actions[k].data.text.toLowerCase(),
+                bountyRegex = /[^a-zA-Z]\d|^\d/,
+                bounty = comment.indexOf("agree") == -1 && comment.length < 100 && bountyRegex.test(comment) ? parseInt(comment.replace(/[^\d]/g, "")) : undefined;
 
-            if (bounty && all.indexOf(comments.actions[k].idMemberCreator) != -1) {
-              thisBounty += bounty;
-              var id = comment.indexOf("bug") >= 0 ? "skynet" : comments.actions[k].idMemberCreator,
-                obj = membersBounty[id];
-              //console.log(name[id] + " spent " + bounty + " " + comments.name);
+              if (bounty && all.indexOf(comments.actions[k].idMemberCreator) != -1) {
+                thisBounty += bounty;
+                var id = comment.indexOf("bug") >= 0 ? "skynet" : comments.actions[k].idMemberCreator,
+                  obj = membersBounty[id];
+                //console.log(name[id] + " spent " + bounty + " " + comments.name);
 
-              if (obj) {
-                obj.flash += bounty;
+                if (obj) {
+                  obj.flash += bounty;
+                }
+                else {
+                  membersBounty[id] = {"flash": bounty, "awarded": (owners.indexOf(id) >= 0 ? totalOwnerBank : 0)};
+                }
               }
-              else {
-                membersBounty[id] = {"flash": bounty, "awarded": (owners.indexOf(id) >= 0 ? totalOwnerBank : 0)};
+            }
+            else if(comments.actions[k].type == "updateCard"){
+              if(comments.actions[k].data.listBefore.name == "Developing" && comments.actions[k].data.listAfter.name == "Developed"){
+                var tempDate = new Date(comments.actions[k].date).valueOf()
+                if(tempDate < thisAwardedDate)
+                  thisAwardedDate = tempDate;
               }
             }
           }
-          if (thisBounty && done.indexOf(comments.idList) >= 0) {
+          if (thisBounty && done.indexOf(comments.idList) >= 0 && thisAwardedDate >= thisSprintStart) {
             awardBounty(comments.idMembers, thisBounty, comments.name);
           }
           if(asyncStack.length == 0){
@@ -144,7 +159,7 @@ function processMessage(message) {
           }
 
           session.comment(flow_id, parentId, output, '', function () {});
-        });
+        },(messageContent.indexOf("this sprint") >= 0));
       }
       else if (messageContent.indexOf("who has flash") >= 0) {
         //@skynet who has flash?
