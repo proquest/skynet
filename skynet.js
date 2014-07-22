@@ -32,9 +32,10 @@ var all = ["50abd8311448f9bb320124b7"/*Nicky*/, "5249a3f58439b14f0b004ba6"/*Eric
   sprintPayout = 1000,
   sprintDuration = 14 * 1000 * 60 * 60 * 24,//14 days
   ownerPayout = (new Date() - startDate),
-  totalOwnerBank = Math.floor(ownerPayout / sprintDuration) * sprintPayout,
+  totalOwnerBank = Math.round((ownerPayout / sprintDuration) * sprintPayout),
   membersBounty = {};
 function getBounties(callback,onlyCurrentSprint){
+  totalOwnerBank = Math.round((ownerPayout / sprintDuration) * sprintPayout)
   var asyncStack = ["board"];
   membersBounty = {};
   var thisSprintStart = startDate.valueOf(), now = new Date().valueOf();
@@ -305,7 +306,7 @@ function processMessage(message) {
     console.log(e);
   }
 }
-stream.on('message', processMessage);
+//stream.on('message', processMessage);
 setInterval(function(){
   var now = (new Date()).valueOf(),timeout = 1000*60*15;
   if(lastMessage+timeout <= now){
