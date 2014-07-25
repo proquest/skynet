@@ -12,7 +12,7 @@ var Flowdock = require('flowdock'),
 app.use(parser.json());
 app.use(parser.urlencoded());
 app.set('view engine', 'jade');
-app.use(Express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', function (req, res) {
   res.render('index');

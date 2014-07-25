@@ -1,0 +1,20 @@
+doctype
+html(ng-app="myApp")
+  head
+    meta(charset='utf8')
+    base(href='/')
+    title Skynet Errors
+    link(rel='stylesheet', href='/css/index.css')
+  body(ng-controller='AppCtrl')
+    div(ng-repeat='error in _uniques')
+      h1
+        b {{error.count}}
+        {{error.name}}
+      h2 {{error.message}}
+      h3 {{error.origin}}
+      h3
+        {{error.file || error.func}}
+        i {{error.lineNumber}}
+      h4 {{error.stack || error.params}}
+  script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.0.1/angular.min.js')
+  script(src='/js/index.js')
