@@ -1,6 +1,32 @@
-var Flowdock = require('flowdock');
-var Jenkins = require('jenkins-api');
-var Trello = require('node-trello');
+var Flowdock = require('flowdock'),
+    Jenkins = require('jenkins-api'),
+    Trello = require('node-trello'),
+    Mongo = require("mongojs").connect("skynet", ["errors"]),
+    Express = require('express'),
+    app = Express();
+
+app.get('/status', function (req, res) {
+  Mongo.errors.find(function (err, results) {
+    if (err) console.log(err);
+    else {
+      res.send(JSON.stringify(results));
+    }
+  });
+});
+app.post('/error', function (req, res) {
+  var result = {};
+  try {
+    Mongo.errors.save(req.body);
+    result.status = "success";
+  }catch(e){
+    result.status = "failure"
+    result.message = e.message;
+  }
+  res.send(JSON.stringify(result));
+});
+var server = app.listen(3000, function () {
+  console.log('Listening on port %d', server.address().port);
+});
 
 var flow_id, user_id, jenkins_id, jenkins_pass, jenkins_server = 'build.udini.proquest.com', trello_key, trello_token;
 var args = process.argv.slice(2);
