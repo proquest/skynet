@@ -2,8 +2,12 @@ var Flowdock = require('flowdock'),
     Jenkins = require('jenkins-api'),
     Trello = require('node-trello'),
     Mongo = require("mongojs").connect("skynet", ["errors"]),
-    Express = require('express'),
+    Express = require("express"),
+    parser = require("body-parser"),
     app = Express();
+
+app.use(parser.json());
+app.use(parser.urlencoded());
 
 app.get('/status', function (req, res) {
   Mongo.errors.find(function (err, results) {
