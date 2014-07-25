@@ -13,7 +13,15 @@ app.get('/status', function (req, res) {
   Mongo.errors.find(function (err, results) {
     if (err) console.log(err);
     else {
-      res.send(JSON.stringify(results));
+      var template = "<div><h3>%NAME%: %MSG%</h3><h4>%FILE%: %LINE%</h4><div>%STACK%</div></div>";
+      var output = results.map(function(result){
+        return template.replace("%NAME%", result.name)
+          .replace("%MSG%", result.message)
+          .replace("%FILE%", result.file)
+          .replace("%LINE%", result.lineNumber)
+          .replace("%STACK%", result.stack);
+      });
+      res.send("<html><head></head><body>"+output.join("")+"</body></html>");
     }
   });
 });
