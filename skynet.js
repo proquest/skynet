@@ -352,7 +352,7 @@ function processMessage(message) {
     console.log(e);
   }
 }
-//stream.on('message', processMessage);
+stream.on('message', processMessage);
 setInterval(function(){
   var now = (new Date()).valueOf(),timeout = 1000*60*15;
   /*if(lastMessage+timeout <= now){
