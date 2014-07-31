@@ -13,13 +13,17 @@ angular.module('myApp.controllers', []).
       success(function (data, status, headers, config) {
         $scope._all = data;
         $scope._uniques = {};
+        $scope._last24 = {};
         angular.forEach(data, function (value, key) {
           value.count = 1;
           if(value.file) {
-            if ($scope._uniques[value.file + value.lineNumber])
+            if ($scope._uniques[value.file + value.lineNumber]) {
               $scope._uniques[value.file + value.lineNumber].count++;
-            else
+
+            }
+            else {
               $scope._uniques[value.file + value.lineNumber] = value;
+            }
           }
           else if(value.func) {
             if($scope._uniques[value.func])

@@ -9,11 +9,11 @@ html(ng-app="myApp")
     div(ng-repeat='error in _uniques')
       h1
         b {{error.count}}
-        {{error.name}}
+        span {{error.name}}
       h2 {{error.message}}
       h3 {{error.origin}}
       h3
-        {{error.file || error.func}}
+        span {{error.file || error.func}}
         i {{error.lineNumber}}
       h4 {{error.stack || error.params}}
   script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.0.1/angular.min.js')

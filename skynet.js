@@ -36,6 +36,7 @@ app.options('/error', cors(corsOptions));
 app.post('/error', cors(corsOptions), function (req, res) {
   var result = {};
   try {
+    req.body.timestamp = new Date();
     Mongo.errors.save(req.body);
     result.status = "success";
   }catch(e){
@@ -108,7 +109,8 @@ function getBounties(callback,onlyCurrentSprint){
                 bounty = comment.indexOf("agree") == -1 && comment.length < 100 && bountyRegex.test(comment) ? parseInt(comment.replace(/[^\d]/g, "")) : undefined;
 
               if (bounty && all.indexOf(comments.actions[k].idMemberCreator) != -1) {
-                thisBounty += bounty;
+                if(comment.indexOf("buy-in") == -1 && comment.indexOf("buy in") == -1)
+                  thisBounty += bounty;
                 var id = comment.indexOf("bug") >= 0 ? "skynet" : comments.actions[k].idMemberCreator,
                   obj = membersBounty[id];
                 //console.log(name[id] + " spent " + bounty + " " + comments.name);
@@ -154,7 +156,7 @@ function getBounties(callback,onlyCurrentSprint){
     for (var i = 0; i < members.length; i++) {
       if (developers.indexOf(members[i]) >= 0 || qa.indexOf(members[i]) >= 0) {
         var award = amount(members[i], bounty, (developers.indexOf(members[i]) >= 0 ? developerCount : qaCount));
-        //console.log(name[members[i]] + " earned " + award + " " + title);
+        console.log(name[members[i]] + " earned " + award + " " + title);
         if (membersBounty[members[i]]) {
           membersBounty[members[i]].awarded += award;
         }
@@ -355,13 +357,13 @@ function processMessage(message) {
 stream.on('message', processMessage);
 setInterval(function(){
   var now = (new Date()).valueOf(),timeout = 1000*60*15;
-  /*if(lastMessage+timeout <= now){
+  if(lastMessage+timeout <= now){
     lastMessage = now;
     console.log("reset");
     stream.end();
     stream = session.stream(flow_id);
     stream.on('message', processMessage);
-  }*/
+  }
 	if(testsQueued.length == 0)
 		return;
 	var test = testsQueued.pop();
