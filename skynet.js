@@ -354,15 +354,15 @@ function processMessage(message) {
     console.log(e);
   }
 }
-stream.on('message', processMessage);
+//stream.on('message', processMessage);
 setInterval(function(){
   var now = (new Date()).valueOf(),timeout = 1000*60*15;
   if(lastMessage+timeout <= now){
-    lastMessage = now;
+    /*lastMessage = now;
     console.log("reset");
     stream.end();
     stream = session.stream(flow_id);
-    stream.on('message', processMessage);
+    stream.on('message', processMessage);*/
   }
 	if(testsQueued.length == 0)
 		return;

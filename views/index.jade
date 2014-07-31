@@ -1,21 +1,25 @@
 doctype
-html(ng-app="myApp")
+html(ng-app="skynet")
   head
     meta(charset='utf8')
     base(href='/')
     title Skynet Errors
     link(rel='stylesheet', href='/css/index.css')
   body(ng-controller='AppCtrl')
-    input(type='checkbox' ng-model='todayOnly')
-    div(ng-repeat='error in _uniques | filter : filterToday')
+    input#todayOnly(type='checkbox' ng-model='todayOnly')
+    label(for='todayOnly') Today
+    div(ng-repeat='error in _uniques | filter : filterToday(now)')
       h1
         b {{error.count}}
         span {{error.name}}
       h2 {{error.message}}
-      h3 {{error.origin}}
       h3
+        span {{error.origin}}
         span {{error.file || error.func}}
         i {{error.lineNumber}}
       h4 {{error.stack || error.params}}
+      h4
+        div(ng-repeat='date in handleDates(error.timestamp)') {{date.date}}
+          span.count {{date.count}}
   script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.0.1/angular.min.js')
   script(src='/js/index.js')
