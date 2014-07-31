@@ -6,6 +6,12 @@ angular.module('myApp', ['myApp.controllers']);
 
 angular.module('myApp.controllers', []).
   controller('AppCtrl', function ($scope, $http) {
+    $scope.todayOnly = true;
+    $scope.filterToday = function(item){
+      var now = new Date(), day = 24 * 60 * 60 * 1000;
+      if(item >= (now - day))
+        return true;
+    };
     $http({
       method: 'GET',
       url: '/status'
@@ -16,6 +22,7 @@ angular.module('myApp.controllers', []).
         $scope._last24 = {};
         angular.forEach(data, function (value, key) {
           value.count = 1;
+          var date = new Date(value.timestamp);
           if(value.file) {
             if ($scope._uniques[value.file + value.lineNumber]) {
               $scope._uniques[value.file + value.lineNumber].count++;
@@ -32,7 +39,6 @@ angular.module('myApp.controllers', []).
               $scope._uniques[value.func] = value;
           }
         });
-        console.log($scope._uniques)
       }).
       error(function (data, status, headers, config) {
         $scope._error = 'Error!';

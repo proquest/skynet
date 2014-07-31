@@ -6,7 +6,8 @@ html(ng-app="myApp")
     title Skynet Errors
     link(rel='stylesheet', href='/css/index.css')
   body(ng-controller='AppCtrl')
-    div(ng-repeat='error in _uniques')
+    input(type='checkbox' ng-model='todayOnly')
+    div(ng-repeat='error in _uniques | filter : filterToday')
       h1
         b {{error.count}}
         span {{error.name}}
