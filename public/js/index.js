@@ -39,7 +39,6 @@ angular.module('skynet.controllers', []).
         $scope._uniques = [];
         angular.forEach(data, function (value, key) {
           value.count = 1;
-          value.timestamp = $scope.now- 24 * 60 * 60 * 1001;
           var date = new Date(value.timestamp);
           if(value.file) {
             if (indexes[value.file + value.lineNumber] >= 0) {
