@@ -63,8 +63,7 @@ angular.module('skynet.controllers', []).
             }
           }
         });
-        $scope._uniques.sort(function(a,b){return a.count > b.count});
-        //group timestamp into days
+        $scope._uniques = $scope._uniques.sort(function(a,b){return a.count > b.count});
       }).
       error(function (data, status, headers, config) {
         $scope._error = 'Error!';
