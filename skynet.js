@@ -20,7 +20,7 @@ app.get('/', function (req, res) {
 app.get('/status', function (req, res) {
     var today = new Date(),
         day = 24 * 60 * 60 * 1000,
-        yesterday = today - day,
+        yesterday = new Date(today - day),
         todayString = today.toDateString();
     Mongo.errors.find({"timestamp": {"$gt": yesterday}}, function (err, results) {
         if (err) console.log(err);
