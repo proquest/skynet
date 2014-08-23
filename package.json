@@ -1,4 +1,5 @@
 {"dependencies": {
 	"flowdock": "latest",
-	"jenkins-api": "latest"
+	"jenkins-api": "latest",
+    "request": "latest"
 }}

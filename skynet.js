@@ -1,7 +1,7 @@
 var Flowdock = require('flowdock'),
     Jenkins = require('jenkins-api'),
     Trello = require('node-trello'),
-    Mongo = require("mongojs").connect("skynet", ["errors"]),
+    Mongo = require("mongojs").connect("skynet", ["errors","stferrors"]),
     Express = require("express"),
     parser = require("body-parser"),
     cors = require("cors"),
@@ -59,6 +59,7 @@ app.post('/error', cors(corsOptions), function (req, res) {
     try {
         req.body.timestamp = new Date();
         Mongo.errors.save(req.body);
+        sendInbox("Google Docs", req.body);
         result.status = "success";
     } catch (e) {
         result.status = "failure"
@@ -66,6 +67,27 @@ app.post('/error', cors(corsOptions), function (req, res) {
     }
     res.send(JSON.stringify(result));
 });
+app.post('/stferror', function (req, res) {
+    var result = {};
+    try {
+        req.body.timestamp = new Date();
+        Mongo.stferrors.save(req.body);
+        sendInbox("Save to Flow", req.body);
+        result.status = "success";
+    } catch (e) {
+        result.status = "failure"
+        result.message = e.message;
+    }
+    res.send(JSON.stringify(result));
+});
+function sendInbox(sourceApp, errorContent){
+    var request = require('request'),
+        data = {"source": sourceApp, "from_address": "jeffrey.jones@proquest.com", "from_name": "Skynet", "subject": "Error in "+ sourceApp, "content": ""};
+    for(key in errorContent)
+        data.content += key+": "+ errorContent[key]+"<br/>";
+    request({uri: "https://api.flowdock.com/v1/messages/team_inbox/c66d6bd7628e872c6cf6079e4efdb528", method: 'POST',json: data},function(resp){});
+}
+
 var server = app.listen(8080, function () {
     console.log('Listening on port %d', server.address().port);
 });
