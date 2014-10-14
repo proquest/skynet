@@ -88,7 +88,7 @@ function sendInbox(sourceApp, errorContent){
     request({uri: "https://api.flowdock.com/v1/messages/team_inbox/c66d6bd7628e872c6cf6079e4efdb528", method: 'POST',json: data},function(resp){});
 }
 
-var server = app.listen(3000, function () {
+var server = app.listen(8080, function () {
     console.log('Listening on port %d', server.address().port);
 });
 
@@ -377,7 +377,7 @@ function processMessage(message) {
             else if (messageContent.indexOf('choose') == 9 && messageContent.indexOf('or') >= 0) {
                 var options = originalMessage.replace(/@skynet, choose /i, '').replace(/ or|, /ig, '||').split('||');
 
-                session.comment(flow_id, message, "and the winner is... " + options[Math.floor(Math.random() * options.length)], '', function () {
+                session.comment(flow_id, parentId, "and the winner is... " + options[Math.floor(Math.random() * options.length)], '', function () {
                 });
             }
             else if (messageContent.indexOf('wish') >= 0) {
