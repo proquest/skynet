@@ -352,19 +352,19 @@ function processMessage(message) {
                     });
                 });
             }
-            else if (messageContent.indexOf('build flow') >= 0) {
-                // expects a command in the format "@skynet build flow feature/[branch-name] [instance-name]"
+            else if (messageContent.indexOf('build flow') >= 0 || messageContent.indexOf('deploy flow') >= 0) {
+                // Expects a command in the format "@skynet build flow feature/branch-name [instance-name]"
+                // It will also accept deploy flow as a command if people forget
+                // Instance name is optional, if it doesn't exist Hal won't get called
 
                 var stuff = originalMessage.substring(messageContent.indexOf('flow') + 5).split(' ');
                 var branchName = stuff[0];
 
-                session.comment(flow_id, parentId, "You want me to build '" + branchName + "'")
-
                 jenkins.build("FLOW_BRANCH_JDK7", {"BRANCH": "origin/" + branchName}, function(err, data) {
                     if (err)
                         return console.log(err);
-                    testsQueued.push({job: "FLOW_BRANCH_JDK7", message_id: parentId, branch: branchName, instanceName: stuff[1]});
-                    session.comment(flow_id, parentId, 'Perhaps I will do this for you.', '', function () {
+                    testsQueued.push({job: "FLOW_BRANCH_JDK7", message_id: parentId, branch: branchName, instanceName: (stuff.length > 1 ? stuff[1] || null)});
+                    session.comment(flow_id, parentId, 'Now building branch ' + branchName + '...', '', function () {
                     });
                 });
             }
@@ -435,20 +435,13 @@ setInterval(function () {
         if (err)
             return console.log(err);
         try {
-            console.log("****** jenkins.job_info data : " + JSON.stringify(data));
-
-
             if (!data.queueItem && data.lastCompletedBuild.number == data.lastBuild.number) {
-
                 jenkins.job_output(test.job, data.lastCompletedBuild.number, function (err, data) {
-                    console.log("********** jenkins.job_output data : " + JSON.stringify(data));
-
-                    if(data.name == "FLOW_BRANCH_JDK7") {
-                        var halMsg = "@Hal deploy review " + test.branchName + " " + test.instanceName;
-                        
-                        session.message(flow_id, halMsg, '');
-                        // deploy review feature/[branch name] [instance-name]
-
+                    if(test.job == "FLOW_BRANCH_JDK7") {
+                        if(test.instanceName != null)
+                            session.message(flow_id, "@Hal deploy review " + test.branch + " " + test.instanceName, '');
+                        else
+                            session.message(flow_id, "Build " + test.branch + " is now complete.", '');
                     }
                     else {
                         if (err)
