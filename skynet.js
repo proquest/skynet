@@ -88,7 +88,7 @@ function sendInbox(sourceApp, errorContent){
     request({uri: "https://api.flowdock.com/v1/messages/team_inbox/c66d6bd7628e872c6cf6079e4efdb528", method: 'POST',json: data},function(resp){});
 }
 
-var server = app.listen(8080, function () {
+var server = app.listen(3000, function () {
     console.log('Listening on port %d', server.address().port);
 });
 
@@ -352,13 +352,32 @@ function processMessage(message) {
                     });
                 });
             }
+            else if (messageContent.indexOf('build flow') >= 0) {
+                // expects a command in the format "@skynet build flow feature/[branch-name] [instance-name]"
+
+                var stuff = originalMessage.substring(messageContent.indexOf('flow') + 5).split(' ');
+                var branchName = stuff[0];
+
+                session.comment(flow_id, parentId, "You want me to build '" + branchName + "'")
+
+                jenkins.build("FLOW_BRANCH_JDK7", {"BRANCH": "origin/" + branchName}, function(err, data) {
+                    if (err)
+                        return console.log(err);
+                    testsQueued.push({job: "FLOW_BRANCH_JDK7", message_id: parentId, branch: branchName, instanceName: stuff[1]});
+                    session.comment(flow_id, parentId, 'Perhaps I will do this for you.', '', function () {
+                    });
+                });
+            }
             else if (messageContent.indexOf('help') >= 0) {
                 session.comment(flow_id, parentId, help, '');
+            }
+            else if (messageContent.indexOf('hal') >= 0) {
+                session.message(flow_id, "@Hal instances", '');
             }
             else if (messageContent.indexOf('choose') == 9 && messageContent.indexOf('or') >= 0) {
                 var options = originalMessage.replace(/@skynet, choose /i, '').replace(/ or|, /ig, '||').split('||');
 
-                session.comment(flow_id, parentId, "and the winner is... " + options[Math.floor(Math.random() * options.length)], '', function () {
+                session.comment(flow_id, message, "and the winner is... " + options[Math.floor(Math.random() * options.length)], '', function () {
                 });
             }
             else if (messageContent.indexOf('wish') >= 0) {
@@ -416,25 +435,39 @@ setInterval(function () {
         if (err)
             return console.log(err);
         try {
+            console.log("****** jenkins.job_info data : " + JSON.stringify(data));
+
+
             if (!data.queueItem && data.lastCompletedBuild.number == data.lastBuild.number) {
 
                 jenkins.job_output(test.job, data.lastCompletedBuild.number, function (err, data) {
-                    if (err)
-                        return console.log(err);
-                    var lines = data.output.split("\n");
-                    var lastExtractor = "";
-                    var failed = {};
-                    for (var i = 0; i < lines.length; i++) {
-                        if (lines[i].indexOf("PME_TEST_DRIVER local server request:") == 0)
-                            lastExtractor = lines[i].substring(lines[i].indexOf(":") + 2);
-                        if (lines[i].indexOf("PME_TEST_DRIVER resultJSON =") >= 0)
-                            failed[decodeURIComponent(lastExtractor)] = true;
+                    console.log("********** jenkins.job_output data : " + JSON.stringify(data));
+
+                    if(data.name == "FLOW_BRANCH_JDK7") {
+                        var halMsg = "@Hal deploy review " + test.branchName + " " + test.instanceName;
+                        
+                        session.message(flow_id, halMsg, '');
+                        // deploy review feature/[branch name] [instance-name]
+
                     }
-                    var output = ['Humans interact so poorly with machines, fix these:'];
-                    for (fail in failed)
-                        output.push(fail);
-                    session.comment(flow_id, test.message_id, output.join('\n'), '', function () {
-                    });
+                    else {
+                        if (err)
+                            return console.log(err);
+                        var lines = data.output.split("\n");
+                        var lastExtractor = "";
+                        var failed = {};
+                        for (var i = 0; i < lines.length; i++) {
+                            if (lines[i].indexOf("PME_TEST_DRIVER local server request:") == 0)
+                                lastExtractor = lines[i].substring(lines[i].indexOf(":") + 2);
+                            if (lines[i].indexOf("PME_TEST_DRIVER resultJSON =") >= 0)
+                                failed[decodeURIComponent(lastExtractor)] = true;
+                        }
+                        var output = ['Humans interact so poorly with machines, fix these:'];
+                        for (fail in failed)
+                            output.push(fail);
+                        session.comment(flow_id, test.message_id, output.join('\n'), '', function () {
+                        });
+                    }
                 });
             }
             else
