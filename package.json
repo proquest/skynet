@@ -1,5 +1,10 @@
 {"dependencies": {
 	"flowdock": "latest",
 	"jenkins-api": "latest",
-    "request": "latest"
+    "request": "latest",
+    "node-trello": "latest",
+    "mongojs": "latest",
+    "express": "latest",
+    "body-parser": "latest",
+    "cors": "latest"
 }}

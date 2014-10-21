@@ -352,8 +352,27 @@ function processMessage(message) {
                     });
                 });
             }
+            else if (messageContent.indexOf('build flow') >= 0 || messageContent.indexOf('deploy flow') >= 0) {
+                // Expects a command in the format "@skynet build flow feature/branch-name [instance-name]"
+                // It will also accept deploy flow as a command if people forget
+                // Instance name is optional, if it doesn't exist Hal won't get called
+
+                var stuff = originalMessage.substring(messageContent.indexOf('flow') + 5).split(' ');
+                var branchName = stuff[0];
+
+                jenkins.build("FLOW_BRANCH_JDK7", {"BRANCH": "origin/" + branchName}, function(err, data) {
+                    if (err)
+                        return console.log(err);
+                    testsQueued.push({job: "FLOW_BRANCH_JDK7", message_id: parentId, branch: branchName, instanceName: (stuff.length > 1 ? stuff[1] || null)});
+                    session.comment(flow_id, parentId, 'Now building branch ' + branchName + '...', '', function () {
+                    });
+                });
+            }
             else if (messageContent.indexOf('help') >= 0) {
                 session.comment(flow_id, parentId, help, '');
+            }
+            else if (messageContent.indexOf('hal') >= 0) {
+                session.message(flow_id, "@Hal instances", '');
             }
             else if (messageContent.indexOf('choose') == 9 && messageContent.indexOf('or') >= 0) {
                 var options = originalMessage.replace(/@skynet, choose /i, '').replace(/ or|, /ig, '||').split('||');
@@ -417,24 +436,31 @@ setInterval(function () {
             return console.log(err);
         try {
             if (!data.queueItem && data.lastCompletedBuild.number == data.lastBuild.number) {
-
                 jenkins.job_output(test.job, data.lastCompletedBuild.number, function (err, data) {
-                    if (err)
-                        return console.log(err);
-                    var lines = data.output.split("\n");
-                    var lastExtractor = "";
-                    var failed = {};
-                    for (var i = 0; i < lines.length; i++) {
-                        if (lines[i].indexOf("PME_TEST_DRIVER local server request:") == 0)
-                            lastExtractor = lines[i].substring(lines[i].indexOf(":") + 2);
-                        if (lines[i].indexOf("PME_TEST_DRIVER resultJSON =") >= 0)
-                            failed[decodeURIComponent(lastExtractor)] = true;
+                    if(test.job == "FLOW_BRANCH_JDK7") {
+                        if(test.instanceName != null)
+                            session.message(flow_id, "@Hal deploy review " + test.branch + " " + test.instanceName, '');
+                        else
+                            session.message(flow_id, "Build " + test.branch + " is now complete.", '');
                     }
-                    var output = ['Humans interact so poorly with machines, fix these:'];
-                    for (fail in failed)
-                        output.push(fail);
-                    session.comment(flow_id, test.message_id, output.join('\n'), '', function () {
-                    });
+                    else {
+                        if (err)
+                            return console.log(err);
+                        var lines = data.output.split("\n");
+                        var lastExtractor = "";
+                        var failed = {};
+                        for (var i = 0; i < lines.length; i++) {
+                            if (lines[i].indexOf("PME_TEST_DRIVER local server request:") == 0)
+                                lastExtractor = lines[i].substring(lines[i].indexOf(":") + 2);
+                            if (lines[i].indexOf("PME_TEST_DRIVER resultJSON =") >= 0)
+                                failed[decodeURIComponent(lastExtractor)] = true;
+                        }
+                        var output = ['Humans interact so poorly with machines, fix these:'];
+                        for (fail in failed)
+                            output.push(fail);
+                        session.comment(flow_id, test.message_id, output.join('\n'), '', function () {
+                        });
+                    }
                 });
             }
             else
