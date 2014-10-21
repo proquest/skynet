@@ -363,7 +363,7 @@ function processMessage(message) {
                 jenkins.build("FLOW_BRANCH_JDK7", {"BRANCH": "origin/" + branchName}, function(err, data) {
                     if (err)
                         return console.log(err);
-                    testsQueued.push({job: "FLOW_BRANCH_JDK7", message_id: parentId, branch: branchName, instanceName: (stuff.length > 1 ? stuff[1] || null)});
+                    testsQueued.push({job: "FLOW_BRANCH_JDK7", message_id: parentId, branch: branchName, instanceName: (stuff.length > 1 ? stuff[1] : null)});
                     session.comment(flow_id, parentId, 'Now building branch ' + branchName + '...', '', function () {
                     });
                 });
