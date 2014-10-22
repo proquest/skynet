@@ -396,23 +396,6 @@ function processMessage(message) {
                 });
             }
         }
-
-        if (messageContent.indexOf('@here') >= 0) {
-            session.flows(function (flows) {
-                var now = new Date().valueOf() - 1200000;
-                for (var i = 0; i < flows.length; i++) {
-                    if (flows[i].id == flow_id) {
-                        var names = [];
-                        for (var j = 0; j < flows[i].users.length; j++) {
-                            if (flows[i].users[j].in_flow && flows[i].users[j].id != 84702 && !flows[i].users[j].disabled && now < flows[i].users[j].last_activity)
-                                names.push("@" + flows[i].users[j].nick);
-                        }
-                        session.comment(flow_id, parentId, originalMessage.replace("@here", names.join(', ')), '', function () {
-                        });
-                    }
-                }
-            })
-        }
     }
     catch (e) {
         console.log(e);
