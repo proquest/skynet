@@ -235,7 +235,10 @@ function processMessage(message) {
         var originalMessage = message.content.text ? message.content.text : message.content;
         var parentId = getParentId(message);
         var messageContent = originalMessage.toLowerCase ? originalMessage.toLowerCase() : "";
-        if (messageContent.indexOf('@skynet') >= 0 && message.user != "84702") {
+        if (messageContent.indexOf('@hal') >= 0) {
+            // if the message is directed at Hal, don't do anything
+        }
+        else if (messageContent.indexOf('@skynet') >= 0 && message.user != "84702") {
             var rand = Math.random()
             if (messageContent.indexOf("who's winning") >= 0 || messageContent.indexOf("who is winning") >= 0) {
                 //@skynet who's winning?
