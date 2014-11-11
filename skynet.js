@@ -371,9 +371,6 @@ function processMessage(message) {
             else if (messageContent.indexOf('help') >= 0) {
                 session.comment(flow_id, parentId, help, '');
             }
-            else if (messageContent.indexOf('hal') >= 0) {
-                session.message(flow_id, "@Hal instances", '');
-            }
             else if (messageContent.indexOf('choose') == 9 && messageContent.indexOf('or') >= 0) {
                 var options = originalMessage.replace(/@skynet, choose /i, '').replace(/ or|, /ig, '||').split('||');
 
