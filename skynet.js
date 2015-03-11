@@ -10,7 +10,7 @@ var Flowdock = require('flowdock'),
     path = require('path');
 
 app.use(parser.json());
-app.use(parser.urlencoded());
+app.use(parser.urlencoded({ extended: true }));
 app.set('view engine', 'jade');
 app.use(Express.static(path.join(__dirname, 'public')));
 
