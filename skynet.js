@@ -92,7 +92,7 @@ var server = app.listen(8080, function () {
     console.log('Listening on port %d', server.address().port);
 });
 
-var flow_id, user_id, jenkins_id, jenkins_pass, jenkins_server = 'build.udini.proquest.com', trello_key, trello_token;
+var flow_id, user_id, jenkins_id, jenkins_pass, jenkins_server = 'localhost:8080', trello_key, trello_token;
 var args = process.argv.slice(2);
 if (args.length >= 2) {
     user_id = args[0];
