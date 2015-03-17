@@ -2,6 +2,7 @@ var Flowdock = require('flowdock'),
     Jenkins = require('jenkins-api'),
     Trello = require('node-trello'),
     Mongo = require("mongojs").connect("skynet", ["errors","stferrors"]),
+    Confluence = require("confluence"),
     Express = require("express"),
     parser = require("body-parser"),
     cors = require("cors"),
@@ -124,6 +125,9 @@ devRatio = 2 / 3,
     ownerPayout = (new Date() - startDate),
     totalOwnerBank = Math.round((ownerPayout / sprintDuration) * sprintPayout),
     membersBounty = {};
+
+var confluence = new Confluence();
+
 function getBounties(callback, onlyCurrentSprint) {
     totalOwnerBank = Math.round((ownerPayout / sprintDuration) * sprintPayout)
     var asyncStack = ["board"];
@@ -391,6 +395,12 @@ function processMessage(message) {
                 var rand = Math.floor(Math.random() * cat.length);
                 session.comment(flow_id, parentId, cat[rand], '', function () {
                 });
+            }
+            else if(messageContent.indexOf('rswiki') >= 0) {
+                /*confluence.test(function(err, data) {
+                  session.comment(flow_id, parentId, "Testing rswiki")
+                });*/
+                confluence.testmsg();
             }
             else {
                 var rand = Math.floor(Math.random() * quotes.length);
